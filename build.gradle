@@ -1,0 +1,130 @@
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+apply plugin: 'idea'
+
+
+// code checks
+apply plugin: 'findbugs'
+apply plugin: 'pmd'
+apply plugin: 'checkstyle'
+apply plugin: "jacoco"
+
+
+group = "com.damick"
+archivesBaseName = "dropwizard-metrics-cloudwatch"
+version = "0.1.0"
+
+
+
+task createWrapper(type: Wrapper) {
+  description = "Create a gradle wrapper for you project"
+  gradleVersion = '2.1'
+}
+
+
+signing {
+    sign configurations.archives
+}
+
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+task docJar(type: Jar, dependsOn: 'javadoc') {
+    from javadoc.destinationDir
+}
+
+artifacts { // define the artifacts for a service
+    archives sourcesJar { classifier "sources" }
+    archives docJar { classifier "javadoc" }
+}
+
+
+group = 'com.damick'
+def vendor = 'Jeffrey Damick'
+
+jar.doFirst {
+  manifest {
+      attributes 'Implementation-Title': "${archivesBaseName}",
+                 'Implementation-Version': "${version}",
+                 'Implementation-Vendor': "${vendor}",
+                  provider: 'gradle'
+  }
+}
+
+
+def sonatypeRepositoryUrl
+//set build variables based on build type (release, continuous integration, development)
+if(hasProperty("release")) {
+  sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+} else {
+  version += "-SNAPSHOT"
+  sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+  ext.ossrhUsername = ""
+  ext.ossrhPassword = ""
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: sonatypeRepositoryUrl) {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        name 'dropwizard-metrics-cloudwatch'
+        packaging 'jar'
+        // optionally artifactId can be defined here 
+        description 'Dropwizard Metrics Plugin for reporting to AWS CloudWatch.'
+        url 'https://github.com/jdamick/dropwizard-metrics-cloudwatch'
+
+        scm {
+          connection 'scm:git:git://github.com/jdamick/dropwizard-metrics-cloudwatch.git'
+          developerConnection 'scm:git:git@github.com:jdamick/dropwizard-metrics-cloudwatch.git'
+          url 'https://github.com/jdamick/dropwizard-metrics-cloudwatch'
+        }
+
+        licenses {
+          license {
+            name 'The Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'jdamick'
+            url 'https://github.com/jdamick'
+            name 'Jeffrey Damick'
+            email 'jeffrey.damick@gmail.com'
+          }
+        }
+      }
+    }
+  }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext.dropwizVer = '0.7.1'
+
+dependencies {
+
+  // dropwizard
+  testCompile "io.dropwizard:dropwizard-testing:$dropwizVer"
+  testCompile "org.assertj:assertj-core:1.7.0"
+
+  compile "io.dropwizard:dropwizard-metrics:$dropwizVer"
+  compile "com.blacklocus:metrics-cloudwatch:0.3.3"
+
+
+  testCompile 'junit:junit:4.11'
+}
+
