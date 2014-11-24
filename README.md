@@ -1,7 +1,10 @@
+[![Build Status](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch.svg?branch=master)](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch)
+
 dropwizard-metrics-cloudwatch
 =============================
 
 Dropwizard Metrics plugin for reporting to AWS CloudWatch.
+
 
 
 Add Dependency
