@@ -50,9 +50,6 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     @JsonIgnore
     private AmazonCloudWatchAsync client;
 
-    @JsonIgnore
-    private String localHostname = "";
-
     @NotNull
     private String namespace = "";
 

@@ -17,6 +17,19 @@ archivesBaseName = "dropwizard-metrics-cloudwatch"
 version = "0.1.0"
 
 
+def sonatypeRepositoryUrl
+def isRelease = false
+//set build variables based on build type (release, continuous integration, development)
+if(hasProperty("release")) {
+  sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+  isRelease = true
+} else {
+  version += "-SNAPSHOT"
+  sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+  ext.ossrhUsername = ""
+  ext.ossrhPassword = ""
+}
+
 
 task createWrapper(type: Wrapper) {
   description = "Create a gradle wrapper for you project"
@@ -25,9 +38,22 @@ task createWrapper(type: Wrapper) {
 
 
 signing {
+  if (isRelease) {
     sign configurations.archives
+  }
 }
 
+/// Code checks
+checkstyle {
+  configFile = rootProject.file('gradle/config/checkstyle.xml')
+}
+// exclude the checkstyle, findbugsTest, pmdTest on test source..
+gradle.startParameter.excludedTaskNames += ["checkstyleTest", "findbugsTest", "pmdTest"]
+jacoco {
+  toolVersion = '0.7.2.201409121644'
+}
+tasks.check.dependsOn(jacocoTestReport)
+////
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
@@ -56,16 +82,6 @@ jar.doFirst {
 }
 
 
-def sonatypeRepositoryUrl
-//set build variables based on build type (release, continuous integration, development)
-if(hasProperty("release")) {
-  sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-} else {
-  version += "-SNAPSHOT"
-  sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
-  ext.ossrhUsername = ""
-  ext.ossrhPassword = ""
-}
 
 uploadArchives {
   repositories {
