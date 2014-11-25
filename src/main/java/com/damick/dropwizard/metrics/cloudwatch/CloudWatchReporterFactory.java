@@ -7,7 +7,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
-import com.blacklocus.metrics.CloudWatchReporter;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Strings;
 import io.dropwizard.metrics.BaseReporterFactory;
+import java.util.ArrayList;
+import java.util.List;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -31,6 +33,11 @@ import javax.validation.constraints.NotNull;
  *         <td>namespace</td>
  *         <td>(empty)</td>
  *         <td>The namespace for the metric data.</td>
+ *     </tr>
+ *     <tr>
+ *         <td>globalDimensions</td>
+ *         <td>(empty)</td>
+ *         <td>An array of strings to use as metric dimensions. For example: env=dev</td>
  *     </tr>
  *     <tr>
  *         <td>awsSecretKey</td>
@@ -59,6 +66,11 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     @JsonIgnore
     private String awsAccessKeyId = null;
 
+    @JsonIgnore
+    private String machineDimension;
+
+    @JsonIgnore
+    private List<String> globalDimensions = new ArrayList<>();
 
     @JsonProperty
     public String getAwsSecretKey() {
@@ -80,7 +92,6 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
         this.awsAccessKeyId = awsAccessKeyId;
     }
 
-
     @JsonProperty
     public String getNamespace() {
         return namespace;
@@ -90,6 +101,27 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
+
+    @JsonProperty
+    public String getMachineDimension() {
+        return machineDimension;
+    }
+
+    @JsonProperty
+    public void setMachineDimension(String machineDimension) {
+        this.machineDimension = machineDimension;
+    }
+
+    @JsonProperty
+    public List<String> getGlobalDimensions() {
+        return globalDimensions;
+    }
+
+    @JsonProperty
+    public void setGlobalDimensions(List<String> globalDimensions) {
+        this.globalDimensions = globalDimensions;
+    }
+
 
     // for testing..
     @JsonIgnore
@@ -101,11 +133,19 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     public ScheduledReporter build(MetricRegistry registry) {
         if (client == null) {
             if (!Strings.isNullOrEmpty(awsAccessKeyId) && !Strings.isNullOrEmpty(awsSecretKey)) {
-                client = new AmazonCloudWatchAsyncClient(new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey));
+                client = new AmazonCloudWatchAsyncClient(
+                        new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey));
             } else {
                 client = new AmazonCloudWatchAsyncClient(new DefaultAWSCredentialsProviderChain());
             }
         }
-        return new CloudWatchReporter(registry, this.namespace, getFilter(), client);
+        if (machineDimension == null) {
+            machineDimension = Strings.nullToEmpty(EC2MetadataUtils.getInstanceId());
+        }
+
+        globalDimensions.add("machine=" + machineDimension + "*");
+
+        return new CloudWatchMachineDimensionReporter(registry, this.namespace,
+                globalDimensions, getFilter(), client);
     }
 }
