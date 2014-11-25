@@ -26,6 +26,8 @@ metrics:
   reporters:
     - type: cloudwatch
       namespace: some_namespace
+      globalDimensions:
+        - env=dev  # for example
       awsSecretKey: <optional>
       awsAccessKeyId: <optional>
 ```
