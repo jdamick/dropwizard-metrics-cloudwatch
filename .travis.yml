@@ -1,3 +1,13 @@
 language: java
 jdk:
-  - openjdk7
+- openjdk7
+addons:
+  artifacts:
+    key:
+      secure: CC8yxS8AAKO3DVnKtexOYEKgh65GimzOQaKP5XwObQUvsPVUv1YOFzY4hsxFxdK4kmtsXAjN/7YewJ31ufVTDBPamt3UsF2okBia7A/lfVXggSkOqCZGszCQ1Zp5GADwHHeUvGG95VXI9EJRvCSsh0z56gTpkA7XQc9a9g8ZjLw=
+    secret:
+      secure: US4rV1rZwKf40dPz4jokZc+Jnw716USrHWMpn9ONow9rS27zVwCqfsGlPtBuRNk7ZNwNWGq9X1gDcvqn7QyClgcN1jr0u4qDUCwlj/+cTWeRz0/USo8yap7iBWv2GbisWiCVrYJpXabjKvhAz4PL0Mg5rf/VSKHD9uwTy0SPMvs=
+    bucket: damick-artifacts
+    debug: true
+    paths:
+      - $( ls build/libs | tr "\n" ":" )
