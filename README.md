@@ -10,9 +10,8 @@ Dropwizard Metrics plugin for reporting to AWS CloudWatch.
 Add Dependency
 ===
 
-```
-compile 'com.damick:dropwizard-metrics-cloudwatch:0.1.0'
-```
+
+Find the latest release at maven central [http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22dropwizard-metrics-cloudwatch%22](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22dropwizard-metrics-cloudwatch%22)
 
 
 Using
