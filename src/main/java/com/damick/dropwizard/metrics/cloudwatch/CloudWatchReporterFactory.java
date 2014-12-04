@@ -5,6 +5,8 @@ package com.damick.dropwizard.metrics.cloudwatch;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
 import com.amazonaws.util.EC2MetadataUtils;
@@ -18,6 +20,8 @@ import io.dropwizard.metrics.BaseReporterFactory;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A factory for {@link CloudWatchReporterFactory} instances.
@@ -53,6 +57,8 @@ import javax.validation.constraints.NotNull;
  */
 @JsonTypeName("cloudwatch")
 public class CloudWatchReporterFactory extends BaseReporterFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CloudWatchReporterFactory.class);
+    private static final String DEFAULT_REGION = "us-east-1";
 
     @JsonIgnore
     private AmazonCloudWatchAsync client;
@@ -65,6 +71,9 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
 
     @JsonIgnore
     private String awsAccessKeyId = null;
+
+    @JsonIgnore
+    private String awsRegion = DEFAULT_REGION;
 
     @JsonIgnore
     private String machineDimension;
@@ -90,6 +99,16 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     @JsonProperty
     public void setAwsAccessKeyId(String awsAccessKeyId) {
         this.awsAccessKeyId = awsAccessKeyId;
+    }
+
+    @JsonProperty
+    public String getAwsRegion() {
+        return awsRegion;
+    }
+
+    @JsonProperty
+    public void setAwsRegion(String awsRegion) {
+        this.awsRegion = awsRegion;
     }
 
     @JsonProperty
@@ -138,14 +157,34 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
             } else {
                 client = new AmazonCloudWatchAsyncClient(new DefaultAWSCredentialsProviderChain());
             }
-        }
-        if (machineDimension == null) {
-            machineDimension = Strings.nullToEmpty(EC2MetadataUtils.getInstanceId());
+            Region region = region();
+            client.setRegion(region);
+            LOGGER.info("CloudWatch reporting configure to send to region: {}", region);
         }
 
-        globalDimensions.add("machine=" + machineDimension + "*");
+        globalDimensions.add("machine=" + machineId() + "*");
 
         return new CloudWatchMachineDimensionReporter(registry, this.namespace,
                 globalDimensions, getFilter(), client);
+    }
+
+    protected String machineId() {
+        String machine = machineDimension;
+        if (machine == null) {
+            machine = EC2MetadataUtils.getInstanceId();
+        }
+        if (Strings.isNullOrEmpty(machine)) {
+            machine = "localhost";
+        }
+        return machine;
+    }
+
+    protected Region region() {
+        String az = EC2MetadataUtils.getAvailabilityZone();
+        String regionName = awsRegion;
+        if (!Strings.isNullOrEmpty(az)) {
+            regionName = az.substring(0, az.length() - 1); // strip the AZ letter
+        }
+        return RegionUtils.getRegion(regionName);
     }
 }

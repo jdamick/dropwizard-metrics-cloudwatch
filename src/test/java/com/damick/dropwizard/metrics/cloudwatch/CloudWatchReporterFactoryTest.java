@@ -20,6 +20,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,18 @@ public class CloudWatchReporterFactoryTest {
     public void isDiscoverable() throws Exception {
         assertThat(new DiscoverableSubtypeResolver().getDiscoveredSubtypes())
                 .contains(CloudWatchReporterFactory.class);
+    }
+
+    @Test
+    public void verifyDefaults() throws Exception {
+        CloudWatchReporterFactory factory = new CloudWatchReporterFactory();
+        assertFalse(factory.region().getName().isEmpty());
+        assertFalse(factory.machineId().isEmpty());
+
+        factory.setAwsRegion("ap-southeast-2");
+        factory.setMachineDimension("10.0.0.1");
+        assertEquals("ap-southeast-2", factory.region().getName());
+        assertEquals("10.0.0.1", factory.machineId());
     }
 
     @Test

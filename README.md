@@ -30,6 +30,7 @@ metrics:
         - env=dev  # for example
       awsSecretKey: <optional>
       awsAccessKeyId: <optional>
+      awsRegion: <region name to use for cloudwatch reporting>
 ```
 
 - Namespace must follow the format:
@@ -47,4 +48,3 @@ will be used.
 ### LICENSE
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
