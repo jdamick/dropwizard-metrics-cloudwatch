@@ -10,4 +10,4 @@ addons:
     bucket: damick-artifacts
     debug: true
     paths:
-      - $( ls build/libs | tr "\n" ":" )
+      - $( ls build/libs/* | tr "\n" ":" )
