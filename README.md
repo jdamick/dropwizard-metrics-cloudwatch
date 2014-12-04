@@ -10,9 +10,8 @@ Dropwizard Metrics plugin for reporting to AWS CloudWatch.
 Add Dependency
 ===
 
-TBD
 ```
-compile 'com.damick:dropwizard-metrics-cloudwatch:xxx'
+compile 'com.damick:dropwizard-metrics-cloudwatch:0.1.0'
 ```
 
 
@@ -30,7 +29,7 @@ metrics:
         - env=dev  # for example
       awsSecretKey: <optional>
       awsAccessKeyId: <optional>
-      awsRegion: <region name to use for cloudwatch reporting>
+      awsRegion: <optional: region name to use for cloudwatch reporting>
 ```
 
 - Namespace must follow the format:
