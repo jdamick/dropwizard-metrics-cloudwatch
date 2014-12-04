@@ -41,3 +41,11 @@ See: [CloudWatch Concepts](http://docs.aws.amazon.com/AmazonCloudWatch/latest/De
 - If neither awsAccessKeyId or awsSecretKey are set, then the
 [DefaultAWSCredentialProviderChain](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html)
 will be used.
+
+
+
+LICENSE
+=======
+
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+

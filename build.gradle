@@ -20,9 +20,11 @@ version = "0.1.0"
 def sonatypeRepositoryUrl
 def isRelease = false
 //set build variables based on build type (release, continuous integration, development)
-if(hasProperty("release")) {
+if (hasProperty("release")) {
   sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
   isRelease = true
+} else if (hasProperty("snapshot")) {
+  version += "-SNAPSHOT"
 } else {
   version += "-SNAPSHOT"
   sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
@@ -38,9 +40,7 @@ task createWrapper(type: Wrapper) {
 
 
 signing {
-  if (isRelease) {
-    sign configurations.archives
-  }
+  sign configurations.archives
 }
 
 /// Code checks
@@ -99,6 +99,9 @@ uploadArchives {
       beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
       repository(url: sonatypeRepositoryUrl) {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
         authentication(userName: ossrhUsername, password: ossrhPassword)
       }
 
