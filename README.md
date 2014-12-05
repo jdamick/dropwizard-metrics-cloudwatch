@@ -14,6 +14,8 @@ Add Dependency
 Find the latest release at maven central [http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22dropwizard-metrics-cloudwatch%22](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22dropwizard-metrics-cloudwatch%22)
 
 
+Builds upon the the great work from [blacklocus/metrics-cloudwatch](https://github.com/blacklocus/metrics-cloudwatch)
+
 Using
 =====
 
