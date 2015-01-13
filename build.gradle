@@ -14,7 +14,7 @@ apply plugin: "jacoco"
 
 group = "com.damick"
 archivesBaseName = "dropwizard-metrics-cloudwatch"
-version = "0.1.1"
+version = "0.1.2"
 
 
 def sonatypeRepositoryUrl
@@ -36,7 +36,7 @@ if (hasProperty("release")) {
 
 task createWrapper(type: Wrapper) {
   description = "Create a gradle wrapper for you project"
-  gradleVersion = '2.1'
+  gradleVersion = '2.2'
 }
 
 
@@ -157,9 +157,14 @@ dependencies {
   // dropwizard
   testCompile "io.dropwizard:dropwizard-testing:$dropwizVer"
   testCompile "org.assertj:assertj-core:1.7.0"
+  
+  compile 'com.amazonaws:aws-java-sdk:1.9.14'
 
   compile "io.dropwizard:dropwizard-metrics:$dropwizVer"
-  compile "com.blacklocus:metrics-cloudwatch:0.3.3"
+  compile("com.blacklocus:metrics-cloudwatch:0.3.3") {
+    // replace with a newer version
+    exclude group: 'com.amazonaws', module: 'aws-java-sdk'
+  }
 
 
   testCompile 'junit:junit:4.11'
