@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.3
+* upgrade blacklocus/metrics-cloudwatch
+* minimize dependencies
+
 ## 0.1.2
 * added newer aws sdk version 
 
