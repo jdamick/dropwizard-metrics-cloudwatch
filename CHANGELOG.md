@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.1.4
+* added configuration for the aws client, so people can specify proxies for example
+
 ## 0.1.3
 * upgrade blacklocus/metrics-cloudwatch
 * minimize dependencies

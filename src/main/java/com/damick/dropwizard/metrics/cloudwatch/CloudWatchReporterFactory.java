@@ -3,6 +3,7 @@
  */
 package com.damick.dropwizard.metrics.cloudwatch;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
@@ -19,6 +20,7 @@ import com.google.common.base.Strings;
 import io.dropwizard.metrics.BaseReporterFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,11 @@ import org.slf4j.LoggerFactory;
  *         <td>(empty)</td>
  *         <td>The optional AWS Access key. (If this and awsSecretKey not set DefaultAWSCredentialsProviderChain is used)</td>
  *     </tr>
+ *     <tr>
+ *         <td>awsClientConfiguration</td>
+ *         <td>(empty)</td>
+ *         <td>The optional <a href="http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html">AWS Client Configuration</a>.</td>
+ *     </tr>
  * </table>
  */
 @JsonTypeName("cloudwatch")
@@ -80,6 +87,9 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
 
     @JsonIgnore
     private List<String> globalDimensions = new ArrayList<>();
+
+    @JsonIgnore
+    private ClientConfiguration clientConfig = new ClientConfiguration();
 
     @JsonProperty
     public String getAwsSecretKey() {
@@ -141,6 +151,15 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
         this.globalDimensions = globalDimensions;
     }
 
+    @JsonProperty
+    public void setAwsClientConfiguration(ClientConfiguration clientConfig) {
+        this.clientConfig = clientConfig;
+    }
+
+    @JsonProperty
+    public ClientConfiguration getAwsClientConfiguration() {
+        return clientConfig;
+    }
 
     // for testing..
     @JsonIgnore
@@ -153,9 +172,10 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
         if (client == null) {
             if (!Strings.isNullOrEmpty(awsAccessKeyId) && !Strings.isNullOrEmpty(awsSecretKey)) {
                 client = new AmazonCloudWatchAsyncClient(
-                        new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey));
+                        new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey),
+                        clientConfig, Executors.newCachedThreadPool());
             } else {
-                client = new AmazonCloudWatchAsyncClient(new DefaultAWSCredentialsProviderChain());
+                client = new AmazonCloudWatchAsyncClient(new DefaultAWSCredentialsProviderChain(), clientConfig);
             }
             Region region = region();
             client.setRegion(region);

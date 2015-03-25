@@ -1,0 +1,13 @@
+type: cloudwatch
+frequency: 30s
+rateUnit: seconds
+durationUnit: milliseconds
+namespace: a.b
+globalDimensions:
+  - env=default  # for example, should be: dev or test or prod
+# limited access keys for metrics ONLY.
+awsAccessKeyId: 11111
+awsSecretKey: XXXXX
+awsRegion: us-east-1
+awsClientConfiguration:
+  proxyHost: "p.neustar.biz"

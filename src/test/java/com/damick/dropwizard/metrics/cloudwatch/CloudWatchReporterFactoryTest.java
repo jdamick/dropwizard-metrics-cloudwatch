@@ -11,9 +11,15 @@ import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.io.Resources;
+import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
+import io.dropwizard.jackson.Jackson;
+import java.io.File;
 import java.util.concurrent.Future;
+import javax.validation.Validation;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -21,6 +27,7 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -33,6 +40,24 @@ public class CloudWatchReporterFactoryTest {
     public void isDiscoverable() throws Exception {
         assertThat(new DiscoverableSubtypeResolver().getDiscoveredSubtypes())
                 .contains(CloudWatchReporterFactory.class);
+    }
+
+    @Test
+    public void verifyConfigurable() throws Exception {
+        //Jackson.getObjectMapper().readValue()
+        ObjectMapper mapper = Jackson.newObjectMapper();
+        ConfigurationFactory<CloudWatchReporterFactory> configFactory =
+                new ConfigurationFactory<>(CloudWatchReporterFactory.class,
+                        Validation.buildDefaultValidatorFactory().getValidator(), mapper, "dw");
+        CloudWatchReporterFactory f = configFactory.build(new File(Resources.getResource("cw.yml").getFile()));
+
+        assertEquals("[env=default]", f.getGlobalDimensions().toString());
+        assertEquals("us-east-1", f.getAwsRegion());
+        assertEquals("a.b", f.getNamespace());
+        assertEquals("XXXXX", f.getAwsSecretKey());
+        assertEquals("11111", f.getAwsAccessKeyId());
+        assertEquals("p.neustar.biz", f.getAwsClientConfiguration().getProxyHost());
+        assertNull(f.getAwsClientConfiguration().getProxyUsername());
     }
 
     @Test
