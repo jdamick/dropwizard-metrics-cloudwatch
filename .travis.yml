@@ -1,6 +1,12 @@
 language: java
 jdk:
-- openjdk7
+- openjdk8
+script:
+  - ./gradlew -PdropwizVer='0.7.1' clean check
+  - ./gradlew -PdropwizVer='0.8.1' clean check
+  - jdk_switcher use openjdk7
+  - ./gradlew -PdropwizVer='0.7.1' clean check
+  - ./gradlew -PdropwizVer='0.8.1' clean check
 addons:
   artifacts:
     key:

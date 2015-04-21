@@ -150,7 +150,10 @@ repositories {
     mavenCentral()
 }
 
-ext.dropwizVer = '0.7.1'
+if (!project.hasProperty('dropwizVer')) {
+  ext.dropwizVer = '0.7.1'
+}
+
 ext.awsVer = '1.9.18'
 
 dependencies {
