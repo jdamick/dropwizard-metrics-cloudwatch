@@ -1,5 +1,6 @@
 language: java
 jdk:
+- openjdk7
 - openjdk8
 script:
   - ./gradlew -PdropwizVer='0.7.1' clean check
