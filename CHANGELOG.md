@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.1.5
+* upgraded aws sdk ver for cloudwatch api to 1.10.x
+
 ## 0.1.4
 * added configuration for the aws client, so people can specify proxies for example
 
