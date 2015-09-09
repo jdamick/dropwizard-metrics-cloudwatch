@@ -36,7 +36,7 @@ if (hasProperty("release")) {
 
 task createWrapper(type: Wrapper) {
   description = "Create a gradle wrapper for you project"
-  gradleVersion = '2.3'
+  gradleVersion = '2.6'
 }
 
 
@@ -154,7 +154,7 @@ if (!project.hasProperty('dropwizVer')) {
   ext.dropwizVer = '0.7.1'
 }
 
-ext.awsVer = '1.9.18'
+ext.awsVer = '1.10.16'
 
 dependencies {
 

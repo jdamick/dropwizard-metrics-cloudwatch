@@ -5,6 +5,7 @@ jdk:
 script:
   - ./gradlew -PdropwizVer='0.7.1' clean check
   - ./gradlew -PdropwizVer='0.8.1' clean check
+  - ./gradlew -PdropwizVer='0.8.2' clean check
 addons:
   artifacts:
     key:
