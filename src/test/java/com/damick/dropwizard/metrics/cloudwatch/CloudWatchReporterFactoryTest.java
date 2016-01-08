@@ -17,12 +17,16 @@ import com.google.common.io.Resources;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.Jackson;
-import java.io.File;
-import java.util.concurrent.Future;
-import javax.validation.Validation;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.spi.valuehandling.ValidatedValueUnwrapper;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import javax.validation.Validation;
+import javax.validation.Validator;
+import java.io.File;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -44,11 +48,22 @@ public class CloudWatchReporterFactoryTest {
 
     @Test
     public void verifyConfigurable() throws Exception {
-        //Jackson.getObjectMapper().readValue()
         ObjectMapper mapper = Jackson.newObjectMapper();
+
+        // dropwizard 0.9.1 changed the validation wiring a bit..
+        Class<ValidatedValueUnwrapper> optValidatorClazz = (Class<ValidatedValueUnwrapper>) Class
+                .forName("io.dropwizard.validation.valuehandling.OptionalValidatedValueUnwrapper");
+
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        if (optValidatorClazz != null) {
+            validator = Validation.byProvider(HibernateValidator.class).configure()
+                    .addValidatedValueHandler(optValidatorClazz.newInstance())
+                    .buildValidatorFactory().getValidator();
+        }
+
         ConfigurationFactory<CloudWatchReporterFactory> configFactory =
                 new ConfigurationFactory<>(CloudWatchReporterFactory.class,
-                        Validation.buildDefaultValidatorFactory().getValidator(), mapper, "dw");
+                        validator, mapper, "dw");
         CloudWatchReporterFactory f = configFactory.build(new File(Resources.getResource("cw.yml").getFile()));
 
         assertEquals("[env=default]", f.getGlobalDimensions().toString());
