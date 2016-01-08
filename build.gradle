@@ -154,7 +154,7 @@ if (!project.hasProperty('dropwizVer')) {
   ext.dropwizVer = '0.7.1'
 }
 
-ext.awsVer = '1.10.16'
+ext.awsVer = '1.10.45'
 
 dependencies {
 
@@ -165,7 +165,7 @@ dependencies {
   compile "com.amazonaws:aws-java-sdk-cloudwatch:$awsVer"
 
   compile "io.dropwizard:dropwizard-metrics:$dropwizVer"
-  compile "com.blacklocus:metrics-cloudwatch:0.3.4"
+  compile "com.blacklocus:metrics-cloudwatch:0.3.5"
 
   testCompile 'junit:junit:4.11'
 }

@@ -3,9 +3,9 @@
  */
 package com.damick.dropwizard.metrics.cloudwatch;
 
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.internal.EC2MetadataClient;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
@@ -18,12 +18,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Strings;
 import io.dropwizard.metrics.BaseReporterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
-import javax.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A factory for {@link CloudWatchReporterFactory} instances.
@@ -86,10 +88,13 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     private String machineDimension;
 
     @JsonIgnore
+    private Boolean ec2MetadataAvailable = null;
+
+    @JsonIgnore
     private List<String> globalDimensions = new ArrayList<>();
 
     @JsonIgnore
-    private ClientConfiguration clientConfig = new ClientConfiguration();
+    private CloudWatchClientConfiguration clientConfig = new CloudWatchClientConfiguration();
 
     @JsonProperty
     public String getAwsSecretKey() {
@@ -152,12 +157,12 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     }
 
     @JsonProperty
-    public void setAwsClientConfiguration(ClientConfiguration clientConfig) {
+    public void setAwsClientConfiguration(CloudWatchClientConfiguration clientConfig) {
         this.clientConfig = clientConfig;
     }
 
     @JsonProperty
-    public ClientConfiguration getAwsClientConfiguration() {
+    public CloudWatchClientConfiguration getAwsClientConfiguration() {
         return clientConfig;
     }
 
@@ -190,7 +195,7 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
 
     protected String machineId() {
         String machine = machineDimension;
-        if (machine == null) {
+        if (machine == null && isEC2MetadataAvailable()) {
             machine = EC2MetadataUtils.getInstanceId();
         }
         if (Strings.isNullOrEmpty(machine)) {
@@ -200,11 +205,29 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     }
 
     protected Region region() {
-        String az = EC2MetadataUtils.getAvailabilityZone();
+        String az = null;
+        if (isEC2MetadataAvailable()) {
+            az = EC2MetadataUtils.getAvailabilityZone();
+        }
         String regionName = awsRegion;
         if (!Strings.isNullOrEmpty(az)) {
             regionName = az.substring(0, az.length() - 1); // strip the AZ letter
         }
         return RegionUtils.getRegion(regionName);
+    }
+
+    protected boolean isEC2MetadataAvailable() {
+        if (ec2MetadataAvailable == null) {
+            EC2MetadataClient client = new EC2MetadataClient();
+            try {
+                client.readResource("/");
+                ec2MetadataAvailable = true;
+            } catch (IOException e) {
+                LOGGER.error("Not able to connect to EC2 Metadata Service");
+                // if we have any exception, we'll assume we're not in ec2..
+                ec2MetadataAvailable = false;
+            }
+        }
+        return ec2MetadataAvailable;
     }
 }
