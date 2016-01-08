@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch.svg?branch=master)](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch)  Tested against dropwizard: 0.7.1 & 0.8.1 
+[![Build Status](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch.svg?branch=master)](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch)  Tested against dropwizard: 0.7.1 & 0.8.1 & 0.9.1
 
 dropwizard-metrics-cloudwatch
 =============================
