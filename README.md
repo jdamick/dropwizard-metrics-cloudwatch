@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch.svg?branch=master)](https://travis-ci.org/jdamick/dropwizard-metrics-cloudwatch)  
-[![Maven Central](https://img.shields.io/maven-central/v/com.capitalone.dashboard/Hygieia.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22dropwizard-metrics-cloudwatch%22)
 
 Tested against dropwizard: 0.7.1 & 0.8.1 & 0.9.1
 
