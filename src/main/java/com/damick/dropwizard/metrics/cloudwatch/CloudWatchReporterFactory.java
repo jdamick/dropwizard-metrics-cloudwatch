@@ -3,13 +3,14 @@
  */
 package com.damick.dropwizard.metrics.cloudwatch;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.internal.EC2MetadataClient;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClientBuilder;
 import com.amazonaws.util.EC2MetadataUtils;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -175,15 +175,22 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
     @Override
     public ScheduledReporter build(MetricRegistry registry) {
         if (client == null) {
-            if (!Strings.isNullOrEmpty(awsAccessKeyId) && !Strings.isNullOrEmpty(awsSecretKey)) {
-                client = new AmazonCloudWatchAsyncClient(
-                        new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey),
-                        clientConfig, Executors.newCachedThreadPool());
-            } else {
-                client = new AmazonCloudWatchAsyncClient(new DefaultAWSCredentialsProviderChain(), clientConfig);
-            }
             Region region = region();
-            client.setRegion(region);
+            AmazonCloudWatchAsyncClientBuilder clientBuild =
+                    AmazonCloudWatchAsyncClient.asyncBuilder()
+                            .withRegion(region.toString())
+                            .withClientConfiguration(clientConfig);
+            if (!Strings.isNullOrEmpty(awsAccessKeyId) && !Strings.isNullOrEmpty(awsSecretKey)) {
+                client = clientBuild
+                        .withCredentials(new AWSStaticCredentialsProvider(
+                                new BasicAWSCredentials(this.awsAccessKeyId, this.awsSecretKey)))
+                        .withExecutorFactory(()->Executors.newCachedThreadPool())
+                        .build();
+            } else {
+                client = clientBuild
+                        .withCredentials(new DefaultAWSCredentialsProviderChain())
+                        .build();
+            }
             LOGGER.info("CloudWatch reporting configure to send to region: {}", region);
         }
 
@@ -218,11 +225,10 @@ public class CloudWatchReporterFactory extends BaseReporterFactory {
 
     protected boolean isEC2MetadataAvailable() {
         if (ec2MetadataAvailable == null) {
-            EC2MetadataClient client = new EC2MetadataClient();
-            try {
-                client.readResource("/");
-                ec2MetadataAvailable = true;
-            } catch (IOException e) {
+            EC2MetadataUtils client = new EC2MetadataUtils();
+            ec2MetadataAvailable = true;
+            if (client.getData("/latest/meta-data", 1) == null)
+            //if (client.getEC2InstanceRegion() == null) {
                 LOGGER.error("Not able to connect to EC2 Metadata Service");
                 // if we have any exception, we'll assume we're not in ec2..
                 ec2MetadataAvailable = false;

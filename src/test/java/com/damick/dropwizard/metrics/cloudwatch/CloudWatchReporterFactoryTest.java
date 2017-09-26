@@ -15,10 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.DefaultConfigurationFactoryFactory;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.Jackson;
 import org.hibernate.validator.HibernateValidator;
-import org.hibernate.validator.spi.valuehandling.ValidatedValueUnwrapper;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -50,21 +50,16 @@ public class CloudWatchReporterFactoryTest {
     public void verifyConfigurable() throws Exception {
         ObjectMapper mapper = Jackson.newObjectMapper();
 
-        // dropwizard 0.9.1 changed the validation wiring a bit..
-        Class<ValidatedValueUnwrapper> optValidatorClazz = (Class<ValidatedValueUnwrapper>) Class
-                .forName("io.dropwizard.validation.valuehandling.OptionalValidatedValueUnwrapper");
-
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        if (optValidatorClazz != null) {
-            validator = Validation.byProvider(HibernateValidator.class).configure()
-                    .addValidatedValueHandler(optValidatorClazz.newInstance())
+        //Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Validator validator = Validation.byProvider(HibernateValidator.class).configure()
                     .buildValidatorFactory().getValidator();
-        }
 
         ConfigurationFactory<CloudWatchReporterFactory> configFactory =
-                new ConfigurationFactory<>(CloudWatchReporterFactory.class,
-                        validator, mapper, "dw");
-        CloudWatchReporterFactory f = configFactory.build(new File(Resources.getResource("cw.yml").getFile()));
+                new DefaultConfigurationFactoryFactory<CloudWatchReporterFactory>()
+                        .create(CloudWatchReporterFactory.class, validator, mapper, "dw");
+
+        CloudWatchReporterFactory f = configFactory.build(
+                new File(Resources.getResource("cw.yml").getFile()));
 
         assertEquals("[env=default]", f.getGlobalDimensions().toString());
         assertEquals("us-east-1", f.getAwsRegion());
@@ -98,7 +93,7 @@ public class CloudWatchReporterFactoryTest {
         AmazonCloudWatchAsync mockClient = mock(AmazonCloudWatchAsync.class);
 
         final Future<Void> mockFuture = mock(Future.class);
-        when(mockClient.putMetricDataAsync(any(PutMetricDataRequest.class))).thenReturn(mockFuture);
+//        when(mockClient.putMetricDataAsync(any(PutMetricDataRequest.class))).thenReturn(mockFuture);
         when(mockClient.putMetricDataAsync(any(PutMetricDataRequest.class))).thenAnswer(new Answer<Future>() {
             @Override
             public Future answer(InvocationOnMock invocation) throws Throwable {
